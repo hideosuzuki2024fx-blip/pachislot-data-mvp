@@ -1,0 +1,15 @@
+// 🔧 記憶固定ファイル：プロジェクトの状態と決定事項を永続化
+current_phase: validation_plan_preparation
+active_task: "MVP機能開発準備と初期環境構築"
+platform: web_app_pwa
+strategy: niche_blue_ocean
+market: pachinko_pachislot_data_management
+mvp_core_feature:
+  - id: zero_effort_record (P1解決)
+  - id: expected_value_visualization (P2解決)
+technical_stack:
+  - Next.js (React)
+  - Tailwind CSS
+  - Supabase (Auth & DB)
+next_user_action: "GitHubリポジトリ作成と初期ファイルのコミット"
+status_updated_at: 2025-11-30T10:05:00+09:00
