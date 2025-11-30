@@ -1,0 +1,4 @@
+/* 🔧 added: Tailwind CSSの初期設定 */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
