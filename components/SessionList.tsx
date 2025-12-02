@@ -1,6 +1,6 @@
-// 🔧 changed: P2の動的更新ロジックを実装 (components/SessionList.tsx)
+// 🔧 changed: P2の最終実装 - 累計収支と合計の計算・表示ロジックを追加
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react'; // 🔧 changed: useMemoをインポート
 import { supabase } from '../lib/supabase';
 
 interface Session {
@@ -11,20 +11,26 @@ interface Session {
   recovery: number;
 }
 
-// 🔧 changed: refreshKeyをPropsで受け取る
 const SessionList: React.FC<{ refreshKey: number }> = ({ refreshKey }) => {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // 🔧 changed: refreshKeyが変更されたら、データを再取得する
+  // 🔧 added: データを集計するための計算ロジック（パフォーマンス最適化のためuseMemoを使用）
+  const totals = useMemo(() => {
+    const totalInvestment = sessions.reduce((sum, s) => sum + s.investment, 0);
+    const totalRecovery = sessions.reduce((sum, s) => sum + s.recovery, 0);
+    const totalBalance = totalRecovery - totalInvestment;
+
+    return { totalInvestment, totalRecovery, totalBalance };
+  }, [sessions]); // sessionsデータが更新されるたびに再計算する
+
   useEffect(() => {
     fetchSessions();
-  }, [refreshKey]); 
+  }, [refreshKey]);
 
   const fetchSessions = async () => {
     setLoading(true);
     try {
-      // データベースから全てのセッションデータを取得 (最新順)
       const { data: sessionsData, error } = await supabase
         .from('sessions')
         .select('*')
@@ -32,7 +38,6 @@ const SessionList: React.FC<{ refreshKey: number }> = ({ refreshKey }) => {
 
       if (error) throw error;
       
-      // 取得したデータを状態にセット
       if (sessionsData) {
         setSessions(sessionsData as Session[]);
       }
@@ -55,6 +60,26 @@ const SessionList: React.FC<{ refreshKey: number }> = ({ refreshKey }) => {
         全記録セッション ({sessions.length}件)
       </h2>
       
+      {/* 🔧 added: 累計・合計表示UI */}
+      <div className="bg-gray-800 p-4 rounded-lg shadow-2xl mb-6 border-2 border-green-500">
+        <p className="text-sm font-light text-gray-400">累積サマリー</p>
+        <p 
+          className={`text-4xl font-extrabold ${totals.totalBalance >= 0 ? 'text-green-400' : 'text-red-400'} transition-colors duration-300`}
+        >
+          {totals.totalBalance.toLocaleString()}円
+        </p>
+        <div className="flex justify-between text-sm mt-2 pt-2 border-t border-gray-700">
+          <p className="text-gray-400">総投資額:</p>
+          <p className="text-yellow-300 font-medium">{totals.totalInvestment.toLocaleString()}円</p>
+        </div>
+        <div className="flex justify-between text-sm">
+          <p className="text-gray-400">総回収額:</p>
+          <p className="text-blue-300 font-medium">{totals.totalRecovery.toLocaleString()}円</p>
+        </div>
+      </div>
+      {/* 🔧 added: /累計・合計表示UI */}
+
+
       {sessions.length === 0 ? (
         <p className="text-gray-400">まだ記録がありません。STARTボタンを押して遊技を記録しましょう。</p>
       ) : (
