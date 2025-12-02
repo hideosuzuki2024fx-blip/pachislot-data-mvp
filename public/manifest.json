@@ -1,0 +1,27 @@
+{
+  "theme_color": "#111827",
+  "background_color": "#111827",
+  "display": "standalone",
+  "scope": "/",
+  "start_url": "/",
+  "name": "パチスロ収支MVP",
+  "short_name": "スロ収支",
+  "description": "ゼロ手間記録と期待値可視化に特化したパチスロ収支管理アプリ",
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-256x256.png",
+      "sizes": "256x256",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
