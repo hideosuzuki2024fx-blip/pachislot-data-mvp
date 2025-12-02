@@ -1,9 +1,6 @@
-// 🔧 changed: 不要なswcMinify設定を削除し警告を解消
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true,
-  // swcMinify: true, // 🔧 deleted: この行を削除しました
-}
+  // Vercelがビルドアウトプットを正しく認識できるように最小限の設定にリセット
+};
 
-module.exports = nextConfig
+module.exports = nextConfig;
