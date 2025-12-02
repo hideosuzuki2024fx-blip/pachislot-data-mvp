@@ -1,4 +1,4 @@
-// 🔧 added: P2（期待値可視化）のためのデータ取得コンポーネントの雛形
+// 🔧 changed: P2の動的更新ロジックを実装 (components/SessionList.tsx)
 
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
@@ -11,14 +11,15 @@ interface Session {
   recovery: number;
 }
 
-// データベースからセッションデータを取得するコンポーネント
-const SessionList: React.FC = () => {
+// 🔧 changed: refreshKeyをPropsで受け取る
+const SessionList: React.FC<{ refreshKey: number }> = ({ refreshKey }) => {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // 🔧 changed: refreshKeyが変更されたら、データを再取得する
   useEffect(() => {
     fetchSessions();
-  }, []);
+  }, [refreshKey]); 
 
   const fetchSessions = async () => {
     setLoading(true);
@@ -27,7 +28,7 @@ const SessionList: React.FC = () => {
       const { data: sessionsData, error } = await supabase
         .from('sessions')
         .select('*')
-        .order('start_time', { ascending: false }); // 最新の記録を上に表示
+        .order('start_time', { ascending: false });
 
       if (error) throw error;
       
