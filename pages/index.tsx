@@ -1,8 +1,9 @@
-// 🔧 changed: ゼロ手間記録（P1）ロジックの実装。Supabase連携とセッション管理を追加。
+// 🔧 changed: P2コンポーネント(SessionList)をトップページに統合
 
 import Head from 'next/head';
 import { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase'; // 🔧 changed: Supabaseクライアントをインポート
+import { supabase } from '../lib/supabase';
+import SessionList from '../components/SessionList'; // 🔧 added: P2コンポーネントをインポート
 
 // 遊技セッションの型定義
 interface Session {
@@ -15,11 +16,10 @@ interface Session {
 
 const Home: React.FC = () => {
   // isRecordingではなく、現在のセッションID（遊技中ならそのID）を保持
-  const [activeSessionId, setActiveSessionId] = useState<string | null>(null); // 🔧 changed
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // 1. 起動時にアクティブなセッションをチェックする (将来的にはユーザー認証と連携)
-  // MVP検証フェーズでは、ローカルストレージを使って単純にアクティブセッションを保持します
+  // 1. 起動時にアクティブなセッションをチェックする
   useEffect(() => {
     const savedSessionId = localStorage.getItem('activeSessionId');
     if (savedSessionId) {
@@ -49,7 +49,7 @@ const Home: React.FC = () => {
       // データベースに開始時刻のみを挿入
       const { data, error } = await supabase
         .from('sessions')
-        .insert([{ user_id: 'mvp_anon_user' }]) // MVP検証中は仮のユーザーIDを使用
+        .insert([{ user_id: 'mvp_anon_user' }])
         .select('id')
         .single();
       
@@ -86,7 +86,7 @@ const Home: React.FC = () => {
       const { error } = await supabase
         .from('sessions')
         .update({ 
-          end_time: new Date().toISOString(), // 終了時刻を自動記録
+          end_time: new Date().toISOString(),
           investment: investment,
           recovery: recovery,
         })
@@ -141,6 +141,10 @@ const Home: React.FC = () => {
             記録をストップするには、もう一度ボタンを押してください。
           </p>
         )}
+        
+        {/* 🔧 added: P2のデータ表示コンポーネントをここに配置 */}
+        <SessionList />
+
       </main>
 
       <footer className="mt-10 text-gray-500 text-sm">
