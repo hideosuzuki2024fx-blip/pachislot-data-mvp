@@ -1,9 +1,9 @@
-// 🔧 changed: P2コンポーネント(SessionList)をトップページに統合
+// 🔧 changed: P2の動的更新ロジックを実装 (pages/index.tsx)
 
 import Head from 'next/head';
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import SessionList from '../components/SessionList'; // 🔧 added: P2コンポーネントをインポート
+import SessionList from '../components/SessionList';
 
 // 遊技セッションの型定義
 interface Session {
@@ -15,9 +15,11 @@ interface Session {
 }
 
 const Home: React.FC = () => {
-  // isRecordingではなく、現在のセッションID（遊技中ならそのID）を保持
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  
+  // 🔧 added: リストを強制的に更新するためのキー
+  const [refreshKey, setRefreshKey] = useState(0); 
 
   // 1. 起動時にアクティブなセッションをチェックする
   useEffect(() => {
@@ -68,11 +70,9 @@ const Home: React.FC = () => {
 
   // 4. 遊技終了処理
   const handleEndSession = async () => {
-    // 終了時に投資額と回収額をアラートで取得し、入力の手間を最小化（P1解決）
     const investmentStr = prompt('遊技終了！\n投資金額（円）を入力してください（例: 20000）:', '0');
     const recoveryStr = prompt('回収金額（円）を入力してください（例: 50000）:', '0');
     
-    // 入力値のバリデーションと数値変換
     const investment = parseInt(investmentStr || '0', 10);
     const recovery = parseInt(recoveryStr || '0', 10);
 
@@ -82,7 +82,6 @@ const Home: React.FC = () => {
     }
 
     try {
-      // データベースの該当セッションを更新
       const { error } = await supabase
         .from('sessions')
         .update({ 
@@ -94,9 +93,12 @@ const Home: React.FC = () => {
       
       if (error) throw error;
 
-      // 状態とローカルストレージをクリア
       setActiveSessionId(null);
       localStorage.removeItem('activeSessionId');
+      
+      // 🔧 added: 記録完了後、強制的にリストを更新するためにキーをインクリメント
+      setRefreshKey(prev => prev + 1); 
+      
       alert(`記録を確定しました。\n収支: ${recovery - investment}円`);
 
     } catch (error) {
@@ -121,14 +123,14 @@ const Home: React.FC = () => {
         {/* 記録開始・終了ボタン (P1: ゼロ手間記録のUI) */}
         <button
           onClick={toggleRecording}
-          disabled={loading} // 処理中はボタンを無効化
+          disabled={loading}
           className={`w-full aspect-square rounded-full transition-all duration-300 shadow-2xl 
             ${activeSessionId 
               ? 'bg-red-600 hover:bg-red-700 text-white text-5xl border-8 border-red-400 animate-pulse'
               : 'bg-green-500 hover:bg-green-600 text-gray-900 text-5xl border-8 border-green-400'
             } ${loading ? 'opacity-50 cursor-not-allowed' : ''}
             `}
-          style={{ width: 'min(80vw, 300px)', height: 'min(80vw, 300px)' }} // スマホでの視認性確保
+          style={{ width: 'min(80vw, 300px)', height: 'min(80vw, 300px)' }}
         >
           {loading 
             ? '処理中...' 
@@ -142,8 +144,8 @@ const Home: React.FC = () => {
           </p>
         )}
         
-        {/* 🔧 added: P2のデータ表示コンポーネントをここに配置 */}
-        <SessionList />
+        {/* 🔧 changed: SessionListにrefreshKeyを渡す */}
+        <SessionList refreshKey={refreshKey} />
 
       </main>
 
